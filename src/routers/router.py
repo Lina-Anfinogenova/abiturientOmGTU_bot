@@ -12,7 +12,7 @@ from src.keyboards.user_keyboard import (get_reply_keyboard,
 from src.texts.textAboutBot import textStartBot, textAboutBot
 from src.texts.textAboutVUZ import textAboutVUZ
 
-from getDataClass import getSpecialityByIdFaculty
+import getDataClass
 
 user_router = Router()
 
@@ -76,7 +76,7 @@ async def confirm(callback: CallbackQuery, state: FSMContext):
     faculty_id = int(callback.data.split("_")[1])
     page = 0
 
-    specialties, total_pages = await getSpecialityByIdFaculty(faculty_id, page)
+    specialties, total_pages = await getDataClass.getSpecialityByIdFaculty(faculty_id, page)
 
     if not specialties:
         await callback.message.edit_text("Специальностей не найдено")
@@ -98,7 +98,7 @@ async def handle_pagination(callback: CallbackQuery):
     elif action == "next_page":
         page += 1
 
-    specialties, total_pages = await getSpecialityByIdFaculty(faculty_id, page)
+    specialties, total_pages = await getDataClass.getSpecialityByIdFaculty(faculty_id, page)
 
     text = f"Специальности (страница {page + 1}/{total_pages}):"
     keyboard = create_keyboard(specialties, faculty_id, page, total_pages)
