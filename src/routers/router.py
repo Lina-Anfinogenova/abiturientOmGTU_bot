@@ -45,46 +45,41 @@ async def aboutVUZ(message: Message, state: FSMContext):
 
 @user_router.message(F.text == button["specialties"])
 async def inform(message: Message, state: FSMContext):
-    await message.reply("Выбирете факультет", reply_markup = get_inline_keyboard_faculties()) #ReplyKeyboardRemove())
+    await message.answer("Выбирете факультет", reply_markup = get_inline_keyboard_faculties()) #ReplyKeyboardRemove())
 
 #обработчики inline кнопок
 
 # Обработчик возврата к факультетам
 @user_router.callback_query(F.data == "back_to_faculties")
 async def back_to_faculties(callback: CallbackQuery):
-    await callback.message.reply("Выбирете факультет", reply_markup=get_inline_keyboard_faculties())
+    await callback.message.edit_reply_markup(reply_markup=None)  # убираем inline кнопки со списком факультетов
+
+    await callback.message.answer("Выбирете факультет", reply_markup=get_inline_keyboard_faculties())
 
 #выбран факультет для фильтрации специальностей
 @user_router.callback_query(F.data.startswith("faculty_"))
 async def confirm(callback: CallbackQuery, state: FSMContext):
-#     await callback.message.edit_reply_markup(reply_markup = None) #убираем inline кнопки со списком факультетов
 #     await callback.answer('Фильтр по факультету.', show_alert=True) #всплывающее сообщение о выбранном фильтре
-#     id_faculty = callback.data.split("_", 1)[1] #извлекаем кодфакультета из нажатой кнопки
-#     faculty = getDataClass.getFacultyById(id_faculty) #получаем данные о выбранном факультете
-#
-#     #нужно добавить сообщение с описанием выбранного факультета
-#
-#     await callback.message.reply(
-#                         f"""
-# Выбранный факультет: <b>{faculty["full_name_faculty"]} ({faculty["short_name_faculty"]})</b>
-#
-# Выбирете специальность:
-#                         """,
-#                         reply_markup=get_inline_keyboard_specialties(getDataClass.getSpecialityByIdFaculty(id_faculty))
-#                         )
 
     faculty_id = int(callback.data.split("_")[1])
     page = 0
 
+    faculty = await getDataClass.getFacultyById(faculty_id) #получаем данные о выбранном факультете
+
     specialties, total_pages = await getDataClass.getSpecialityByIdFaculty(faculty_id, page)
+
+    await callback.message.edit_reply_markup(reply_markup = None) #убираем inline кнопки со списком факультетов
 
     if not specialties:
         await callback.message.edit_text("Специальностей не найдено")
         return
 
-    text = f"Специальности (страница {page + 1}/{total_pages}):"
+    text = f"""
+Выбранный факультет: <b>{faculty["full_name_faculty"]} ({faculty["short_name_faculty"]})</b>
+
+Специальности (страница {page + 1}/{total_pages}):"""
     keyboard = create_keyboard(specialties, faculty_id, page, total_pages)
-    await callback.message.edit_text(text, reply_markup=keyboard)
+    await callback.message.answer(text, reply_markup=keyboard)
 
 # Обработчик пагинации
 @user_router.callback_query(F.data.startswith(("prev_page", "next_page")))
@@ -98,9 +93,14 @@ async def handle_pagination(callback: CallbackQuery):
     elif action == "next_page":
         page += 1
 
+    faculty = await getDataClass.getFacultyById(faculty_id)  # получаем данные о выбранном факультете
+
     specialties, total_pages = await getDataClass.getSpecialityByIdFaculty(faculty_id, page)
 
-    text = f"Специальности (страница {page + 1}/{total_pages}):"
+    text = f"""
+Выбранный факультет: <b>{faculty["full_name_faculty"]} ({faculty["short_name_faculty"]})</b>
+
+Специальности (страница {page + 1}/{total_pages}):"""
     keyboard = create_keyboard(specialties, faculty_id, page, total_pages)
     await callback.message.edit_text(text, reply_markup=keyboard)
 
