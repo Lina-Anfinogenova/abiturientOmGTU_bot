@@ -4,7 +4,7 @@ from aiogram import types
 
 from getDataClass import faculties
 
-button = {
+replyButton = {
     "aboutBot": "ℹ️ О боте",
     "aboutVUZ": "📍 О ВУЗе",
     "specialties": "🎓 Направления для абитериентов",
@@ -13,44 +13,31 @@ button = {
     "FAQ": "❓ FAQ"
 }
 
-
-#    "shop": "🛍 Магазин"}
-
-
 def get_reply_keyboard():
     builder = ReplyKeyboardBuilder()
-    builder.add(KeyboardButton(text = button["aboutBot"]))
+    builder.add(KeyboardButton(text = replyButton["aboutBot"]))
     builder.row(
-        KeyboardButton(text = button["aboutVUZ"])
+        KeyboardButton(text = replyButton["aboutVUZ"])
     )
     builder.row(
-        KeyboardButton(text = button["specialties"])
+        KeyboardButton(text = replyButton["specialties"])
     )
     return builder.as_markup(resize_keyboard = True)
 
 
-# inlineButton = {
-#     "confirm": "✅ Подтвердить",
-#     "cancel": "❌ Отмена",
-#     "openSite": "🔗 Открыть сайт"
-# }
-# urlSite = "https://example.com"
-#
-#
-# def get_inline_keyboard():
-#     builder = InlineKeyboardBuilder()
-#     builder.row(
-#         InlineKeyboardButton(text=inlineButton["confirm"], callback_data="confirm"),
-#         InlineKeyboardButton(text=inlineButton["cancel"], callback_data="cancel")
-#     )
-#     builder.row(
-#         InlineKeyboardButton(text=inlineButton["openSite"], url=urlSite)
-#     )
-#     return builder.as_markup()
+inlineButton = {
+    "confirm": "✅ Подтвердить",
+    "cancel": "❌ Отмена",
+    "openSite": "🔗 Открыть сайт",
+
+    "prev_page": "⬅️ Назад",
+    "next_page": "Вперед ➡️",
+    "back_to_faculties": "◀️ К факультетам"
+}
 
 def get_inline_keyboard_faculties():
     builder = InlineKeyboardBuilder()
-    builder.row(InlineKeyboardButton(text="Все специальности", callback_data="AlSpecialties"))
+    #builder.row(InlineKeyboardButton(text="Все специальности", callback_data="AlSpecialties"))
     for facoltet in faculties:
         builder.row(InlineKeyboardButton(text = facoltet["short_name_faculty"],
                                          callback_data = "faculty_" + str(facoltet["id_faculty"])
@@ -59,19 +46,7 @@ def get_inline_keyboard_faculties():
     return builder.as_markup()
 
 #кнопки с перечислением специальностей
-#нужно еще прописать пагинацию - показ по 5 шт. с кнопками навигации
-def get_inline_keyboard_specialties(spec: dict):
-    builder = InlineKeyboardBuilder()
-    for speciality in spec:
-        print(speciality["full_name_speciality"])
-        builder.row(InlineKeyboardButton(text=speciality["full_name_speciality"],
-                                         callback_data="speciality_" + str(speciality["id_speciality"])
-                                         )
-                    )
-    return builder.as_markup()
-
-
-def create_keyboard(specialties: list, faculty_id: int, page: int, total_pages: int):
+def get_inline_keyboard_specialties(specialties: list, faculty_id: int, page: int, total_pages: int):
     """Создание клавиатуры с пагинацией"""
     buttons = []
 
@@ -89,7 +64,7 @@ def create_keyboard(specialties: list, faculty_id: int, page: int, total_pages: 
     if page > 0:
         pagination_buttons.append(
             types.InlineKeyboardButton(
-                text="⬅️ Назад",
+                text=inlineButton["prev_page"],
                 callback_data=f"prev_page:{faculty_id}:{page}"
             )
         )
@@ -97,7 +72,7 @@ def create_keyboard(specialties: list, faculty_id: int, page: int, total_pages: 
     if page < total_pages - 1:
         pagination_buttons.append(
             types.InlineKeyboardButton(
-                text="Вперед ➡️",
+                text=inlineButton["next_page"],
                 callback_data=f"next_page:{faculty_id}:{page}"
             )
         )
@@ -108,7 +83,7 @@ def create_keyboard(specialties: list, faculty_id: int, page: int, total_pages: 
     # Кнопка возврата к факультетам
     buttons.append([
         types.InlineKeyboardButton(
-            text="◀️ К факультетам",
+            text=inlineButton["back_to_faculties"],
             callback_data="back_to_faculties"
         )
     ])

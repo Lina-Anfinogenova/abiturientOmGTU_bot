@@ -3,12 +3,11 @@ from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery
 
-from config import bot, supabase
+from config import bot
 from src.keyboards.user_keyboard import (get_reply_keyboard,
-                                         button,
+                                         replyButton,
                                          get_inline_keyboard_faculties,
-                                         get_inline_keyboard_specialties,
-                                         create_keyboard)
+                                         get_inline_keyboard_specialties)
 from src.texts.textAboutBot import textStartBot, textAboutBot
 from src.texts.textAboutVUZ import textAboutVUZ
 
@@ -27,7 +26,7 @@ async def start_command(message: Message, state: FSMContext):
     )
 
 #обработчики reply кнопок
-@user_router.message(F.text == button["aboutBot"])
+@user_router.message(F.text == replyButton["aboutBot"])
 async def aboutBot(message: Message, state: FSMContext):
     await bot.send_message(
         chat_id = message.from_user.id,
@@ -35,7 +34,7 @@ async def aboutBot(message: Message, state: FSMContext):
         #, reply_markup = get_inline_keyboard()
     )
 
-@user_router.message(F.text == button["aboutVUZ"])
+@user_router.message(F.text == replyButton["aboutVUZ"])
 async def aboutVUZ(message: Message, state: FSMContext):
     await bot.send_message(
         chat_id = message.from_user.id,
@@ -43,7 +42,7 @@ async def aboutVUZ(message: Message, state: FSMContext):
         #, reply_markup = get_inline_keyboard()
     )
 
-@user_router.message(F.text == button["specialties"])
+@user_router.message(F.text == replyButton["specialties"])
 async def inform(message: Message, state: FSMContext):
     await message.answer("Выбирете факультет", reply_markup = get_inline_keyboard_faculties()) #ReplyKeyboardRemove())
 
@@ -70,15 +69,16 @@ async def confirm(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.edit_reply_markup(reply_markup = None) #убираем inline кнопки со списком факультетов
 
-    if not specialties:
-        await callback.message.edit_text("Специальностей не найдено")
-        return
-
     text = f"""
 Выбранный факультет: <b>{faculty["full_name_faculty"]} ({faculty["short_name_faculty"]})</b>
 
-Специальности (страница {page + 1}/{total_pages}):"""
-    keyboard = create_keyboard(specialties, faculty_id, page, total_pages)
+"""
+    if not specialties:
+        text = text + "Специальностей не найдено"
+    else:
+        text = text + f"Специальности(страница {page + 1} / {total_pages}):"
+
+    keyboard = get_inline_keyboard_specialties(specialties, faculty_id, page, total_pages)
     await callback.message.answer(text, reply_markup=keyboard)
 
 # Обработчик пагинации
@@ -101,7 +101,7 @@ async def handle_pagination(callback: CallbackQuery):
 Выбранный факультет: <b>{faculty["full_name_faculty"]} ({faculty["short_name_faculty"]})</b>
 
 Специальности (страница {page + 1}/{total_pages}):"""
-    keyboard = create_keyboard(specialties, faculty_id, page, total_pages)
+    keyboard = get_inline_keyboard_specialties(specialties, faculty_id, page, total_pages)
     await callback.message.edit_text(text, reply_markup=keyboard)
 
 
