@@ -2,12 +2,14 @@ from aiogram import Router, F
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery
+from aiogram.enums import ParseMode
 
 from config import bot
-from src.keyboards.user_keyboard import (get_reply_keyboard,
-                                         replyButton,
-                                         get_inline_keyboard_faculties,
-                                         get_inline_keyboard_specialties)
+from src.keyboards.user_keyboard import (get_reply_keyboard
+                                         , replyButton
+                                         , get_inline_keyboard_faculties
+                                         , get_inline_keyboard_specialties
+                                         , get_inline_keyboatd_AboutVUZ)
 from src.texts.textAboutBot import textStartBot, textAboutBot
 from src.texts.textAboutVUZ import textAboutVUZ
 
@@ -36,10 +38,20 @@ async def aboutBot(message: Message, state: FSMContext):
 
 @user_router.message(F.text == replyButton["aboutVUZ"])
 async def aboutVUZ(message: Message, state: FSMContext):
-    await bot.send_message(
-        chat_id = message.from_user.id,
-        text = textAboutVUZ
-        #, reply_markup = get_inline_keyboard()
+    await message.answer(
+        text = textAboutVUZ["halo"]
+        , reply_markup = get_inline_keyboatd_AboutVUZ(["halo"])
+    )
+
+@user_router.callback_query(F.data.startswith("btnAboutVUZ_"))
+async def handle_button_btnAboutVUZ(callback: CallbackQuery):
+    btn = callback.data.split("_")[1]
+    selected_buttons = callback.data.split("_")[2].split(",")
+    selected_buttons.append(btn)
+    await callback.message.edit_reply_markup(reply_markup=None)  # убираем inline кнопки предыдущего сообщения
+    await callback.message.answer(
+        text=textAboutVUZ[btn]["text"]
+        , reply_markup=get_inline_keyboatd_AboutVUZ(selected_buttons)
     )
 
 @user_router.message(F.text == replyButton["specialties"])
