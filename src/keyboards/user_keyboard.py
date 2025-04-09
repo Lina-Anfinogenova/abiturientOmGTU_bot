@@ -3,6 +3,7 @@ from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardBut
 from aiogram import types
 
 from getDataClass import faculties
+from src.texts.textAboutVUZ import textAboutVUZ
 
 replyButton = {
     "aboutBot": "ℹ️ О боте",
@@ -24,6 +25,17 @@ def get_reply_keyboard():
     )
     return builder.as_markup(resize_keyboard = True)
 
+def get_inline_keyboatd_AboutVUZ(selected_buttons = []):
+    builder = InlineKeyboardBuilder()
+    sel_btn_str = ",".join(selected_buttons)
+    for i in textAboutVUZ:
+        if i not in selected_buttons:
+            builder.row(InlineKeyboardButton(
+                text=textAboutVUZ[str(i)]["buttonText"],
+                callback_data=f"btnAboutVUZ_{i}_{sel_btn_str}"
+            ))
+
+    return builder.as_markup()
 
 inlineButton = {
     "confirm": "✅ Подтвердить",
