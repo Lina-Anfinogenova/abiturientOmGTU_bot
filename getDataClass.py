@@ -33,3 +33,6 @@ async def getSpecialityByIdFaculty(id_faculty: int, page: int = 0):
 
     # spec = supabase.table("specialties").select("*").eq("id_faculty", str(id_faculty)).execute() # fac.data[0]["id_faculty"]
     # return spec.data
+
+async def getSpecById(spec_id):
+    return supabase.table("specialties").select("*").eq("id_speciality", spec_id).execute().data[0]

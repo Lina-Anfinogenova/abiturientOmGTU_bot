@@ -8,7 +8,7 @@ from src.texts.textAboutVUZ import textAboutVUZ
 replyButton = {
     "aboutBot": "ℹ️ О боте",
     "aboutVUZ": "📍 О ВУЗе",
-    "specialties": "🎓 Направления для абитериентов",
+    "specialties": "🎓 Направления для абитуриентов",
     "openDays": "📅 Дни открытых дверей",
     "Contact": "📞 Контакты",
     "FAQ": "❓ FAQ"
@@ -44,7 +44,11 @@ inlineButton = {
 
     "prev_page": "⬅️ Назад",
     "next_page": "Вперед ➡️",
-    "back_to_faculties": "◀️ К факультетам"
+    "back_to_faculties": "◀️ К факультетам",
+
+    "curriculum": "📚 Учебный план",
+    "back": "⬅️ Назад к списку",
+    "main_menu": "🏠 В главное меню"
 }
 
 def get_inline_keyboard_faculties():
@@ -101,3 +105,17 @@ def get_inline_keyboard_specialties(specialties: list, faculty_id: int, page: in
     ])
 
     return types.InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+#кнопки после специальностей
+def get_inline_keyboard_after_specialties():
+
+    builder = InlineKeyboardBuilder()
+
+    builder.row(InlineKeyboardButton(text=inlineButton["curriculum"],
+                                     callback_data="curriculum"))
+    builder.row(InlineKeyboardButton(text=inlineButton["back"],
+                                     callback_data="back"))
+    builder.row(InlineKeyboardButton(text=inlineButton["main_menu"],
+                                     callback_data="main_menu"))
+    return builder.as_markup()

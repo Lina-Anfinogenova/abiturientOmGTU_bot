@@ -9,7 +9,8 @@ from src.keyboards.user_keyboard import (get_reply_keyboard
                                          , replyButton
                                          , get_inline_keyboard_faculties
                                          , get_inline_keyboard_specialties
-                                         , get_inline_keyboatd_AboutVUZ)
+                                         , get_inline_keyboatd_AboutVUZ
+                                         , get_inline_keyboard_after_specialties)
 from src.texts.textAboutBot import textStartBot, textAboutBot
 from src.texts.textAboutVUZ import textAboutVUZ
 
@@ -115,6 +116,40 @@ async def handle_pagination(callback: CallbackQuery):
 Специальности (страница {page + 1}/{total_pages}):"""
     keyboard = get_inline_keyboard_specialties(specialties, faculty_id, page, total_pages)
     await callback.message.edit_text(text, reply_markup=keyboard)
+
+#выбрана специальность
+@user_router.callback_query(F.data.startswith("spec_"))
+async def confirm(callback: CallbackQuery, state: FSMContext):
+    spec_id = int(callback.data.split("_")[1])
+
+    spec = await getDataClass.getSpecById(spec_id)
+
+    await callback.message.edit_reply_markup(reply_markup=None)  # убираем inline кнопки со списком факультетов
+
+    #надо пофиксить наличие пустых полей
+    text = f"""
+Специальность: <b>{spec["code_speciality"]} «{spec["full_name_speciality"]}»</b>
+
+Квалификация: {spec["qualification"]}
+Срок обучения: {spec["duration"]}
+
+"""
+    if spec["description_speciality"] != None:
+        text = text + spec["description_speciality"]
+
+    text = text + f"""
+Вступительные испытания: {spec["entrance_tests"]}
+
+Количество бюджетных мест {spec["budget_places"]}
+
+Количество коммерческих мест {spec["commercial_places"]}
+
+Количество целевых мест {spec["target_place"]}
+
+Проходной бал {spec["passing_grade"]}
+    """
+    keyboard = get_inline_keyboard_after_specialties()
+    await callback.message.answer(text, reply_markup=keyboard)
 
 
 #обработка всех остальных сообщений
