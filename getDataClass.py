@@ -1,38 +1,48 @@
-from config import supabase
+from config import secrets
+from supabase import Client, create_client
+
 import math
 
-# Чтение данных
-faculties = supabase.table("faculties").select("*").execute().data
+class UserDataRepository:
+    def __init__(self):
+        # Инициализация клиента
+        self.supabase: Client = create_client(secrets.SUPABASE_URL, secrets.SUPABASE_KEY)
 
-async def getFacultyById(id_faculty,  page: int = 0):
-    return supabase.table("faculties").select("*").eq("id_faculty", str(id_faculty)).execute().data[0]
+        self.ITEMS_PER_PAGE = 5 # Количество элементов на странице
 
-# Количество элементов на странице
-ITEMS_PER_PAGE = 5
+    def getAllFaculties(self):
+        # Получение списка всех факультетов
+        return self.supabase.table("faculties").select("*").execute().data
 
-async def getSpecialityByIdFaculty(id_faculty: int, page: int = 0):
-    """Получение специальностей с пагинацией"""
-    start = page * ITEMS_PER_PAGE
-    end = start + ITEMS_PER_PAGE - 1
+    def getFacultyById(self, id_faculty,  page: int = 0):
+        return self.supabase.table("faculties").select("*").eq("id_faculty", str(id_faculty)).execute().data[0]
 
-    # Получаем общее количество
-    count = supabase.table("specialties") \
-        .select("id_speciality", count="exact") \
-        .eq("id_faculty", id_faculty) \
-        .execute().count
+    def getSpecialityByIdFaculty(self, id_faculty: int, page: int = 0):
+        """Получение специальностей с пагинацией"""
+        start = page * self.ITEMS_PER_PAGE
+        end = start + self.ITEMS_PER_PAGE - 1
 
-    # Получаем данные для страницы
-    data = supabase.table("specialties") \
-        .select("*") \
-        .eq("id_faculty", id_faculty) \
-        .range(start, end) \
-        .execute()
+        # Получаем общее количество
+        count = self.supabase.table("specialties") \
+            .select("id_speciality", count="exact") \
+            .eq("id_faculty", id_faculty) \
+            .execute().count
 
-    total_pages = math.ceil(count / ITEMS_PER_PAGE)
-    return data.data, total_pages
+        # Получаем данные для страницы
+        data = self.supabase.table("specialties") \
+            .select("*") \
+            .eq("id_faculty", id_faculty) \
+            .range(start, end) \
+            .execute()
 
-    # spec = supabase.table("specialties").select("*").eq("id_faculty", str(id_faculty)).execute() # fac.data[0]["id_faculty"]
-    # return spec.data
+        total_pages = math.ceil(count / self.ITEMS_PER_PAGE)
+        return data.data, total_pages
 
-async def getSpecById(spec_id):
-    return supabase.table("specialties").select("*").eq("id_speciality", spec_id).execute().data[0]
+    def getSpecById(self, spec_id):
+        return self.supabase.table("specialties")\
+            .select("*")\
+            .eq("id_speciality", spec_id)\
+            .execute()\
+            .data[0]
+
+userDataRepository = UserDataRepository()

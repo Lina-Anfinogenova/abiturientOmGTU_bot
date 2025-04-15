@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery
 from aiogram.enums import ParseMode
 
-from config import bot
+from config import bot, secrets
 from src.keyboards.user_keyboard import (get_reply_keyboard
                                          , replyButton
                                          , get_inline_keyboard_faculties
@@ -14,7 +14,7 @@ from src.keyboards.user_keyboard import (get_reply_keyboard
 from src.texts.textAboutBot import textStartBot, textAboutBot
 from src.texts.textAboutVUZ import textAboutVUZ
 
-import getDataClass
+from getDataClass import userDataRepository
 
 user_router = Router()
 
@@ -76,9 +76,9 @@ async def confirm(callback: CallbackQuery, state: FSMContext):
     faculty_id = int(callback.data.split("_")[1])
     page = 0
 
-    faculty = await getDataClass.getFacultyById(faculty_id) #получаем данные о выбранном факультете
+    faculty = userDataRepository.getFacultyById(faculty_id) #получаем данные о выбранном факультете
 
-    specialties, total_pages = await getDataClass.getSpecialityByIdFaculty(faculty_id, page)
+    specialties, total_pages = userDataRepository.getSpecialityByIdFaculty(faculty_id, page)
 
     await callback.message.edit_reply_markup(reply_markup = None) #убираем inline кнопки со списком факультетов
 
@@ -106,9 +106,9 @@ async def handle_pagination(callback: CallbackQuery):
     elif action == "next_page":
         page += 1
 
-    faculty = await getDataClass.getFacultyById(faculty_id)  # получаем данные о выбранном факультете
+    faculty = userDataRepository.getFacultyById(faculty_id)  # получаем данные о выбранном факультете
 
-    specialties, total_pages = await getDataClass.getSpecialityByIdFaculty(faculty_id, page)
+    specialties, total_pages = userDataRepository.getSpecialityByIdFaculty(faculty_id, page)
 
     text = f"""
 Выбранный факультет: <b>{faculty["full_name_faculty"]} ({faculty["short_name_faculty"]})</b>
@@ -122,7 +122,7 @@ async def handle_pagination(callback: CallbackQuery):
 async def confirm(callback: CallbackQuery, state: FSMContext):
     spec_id = int(callback.data.split("_")[1])
 
-    spec = await getDataClass.getSpecById(spec_id)
+    spec = userDataRepository.getSpecById(spec_id)
 
     await callback.message.edit_reply_markup(reply_markup=None)  # убираем inline кнопки со списком факультетов
 
@@ -148,8 +148,34 @@ async def confirm(callback: CallbackQuery, state: FSMContext):
 
 Проходной бал {spec["passing_grade"]}
     """
-    keyboard = get_inline_keyboard_after_specialties()
+    keyboard = get_inline_keyboard_after_specialties(spec_id, spec["id_faculty"])
     await callback.message.answer(text, reply_markup=keyboard)
+
+#учебный план
+@user_router.callback_query(F.data.startswith("curriculum_"))
+async def confirm(callback: CallbackQuery, state: FSMContext):
+
+    spec_id = int(callback.data.split("_")[1])
+
+    spec = userDataRepository.getSpecById(spec_id)
+
+    if not spec['curriculum']:
+        await callback.answer("Учебный план не найден ❌")
+        return
+
+    # Формируем URL
+    print(spec['curriculum'])
+    #
+    pdf_url = f"{secrets.SUPABASE_URL}/storage/v1/object/public/study-plans/{spec['curriculum']}"
+
+    print(pdf_url)
+    # Отправляем документ
+    await bot.send_document(
+        chat_id=callback.from_user.id,
+        document=pdf_url,
+        caption="Ваш учебный план 📄"
+    )
+    await callback.answer()
 
 
 #обработка всех остальных сообщений

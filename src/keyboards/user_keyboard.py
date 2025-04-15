@@ -2,7 +2,7 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton
 from aiogram import types
 
-from getDataClass import faculties
+from getDataClass import userDataRepository
 from src.texts.textAboutVUZ import textAboutVUZ
 
 replyButton = {
@@ -54,6 +54,7 @@ inlineButton = {
 def get_inline_keyboard_faculties():
     builder = InlineKeyboardBuilder()
     #builder.row(InlineKeyboardButton(text="Все специальности", callback_data="AlSpecialties"))
+    faculties = userDataRepository.getAllFaculties()
     for facoltet in faculties:
         builder.row(InlineKeyboardButton(text = facoltet["short_name_faculty"],
                                          callback_data = "faculty_" + str(facoltet["id_faculty"])
@@ -108,14 +109,14 @@ def get_inline_keyboard_specialties(specialties: list, faculty_id: int, page: in
 
 
 #кнопки после специальностей
-def get_inline_keyboard_after_specialties():
+def get_inline_keyboard_after_specialties(spec_id: int, faculty_id: int):
 
     builder = InlineKeyboardBuilder()
 
     builder.row(InlineKeyboardButton(text=inlineButton["curriculum"],
-                                     callback_data="curriculum"))
+                                     callback_data="curriculum_"+str(spec_id)))
     builder.row(InlineKeyboardButton(text=inlineButton["back"],
-                                     callback_data="back"))
+                                     callback_data="faculty_" + str(faculty_id)))
     builder.row(InlineKeyboardButton(text=inlineButton["main_menu"],
-                                     callback_data="main_menu"))
+                                     callback_data="back_to_faculties"))
     return builder.as_markup()
